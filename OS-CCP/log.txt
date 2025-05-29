@@ -1,0 +1,71 @@
+OS Simulator Running...
+[MEMORY] Loaded page 1 into frame 0
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Loaded page 3 into frame 1
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Loaded page 4 into frame 2
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Page 1 is already in frame 0
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Loaded page 6 into frame 3
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Page 3 is already in frame 1
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Replacing page 1 from frame 0
+[MEMORY] Loaded page 7 into frame 0
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Replacing page 3 from frame 1
+[MEMORY] Loaded page 2 into frame 1
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Page 4 is already in frame 2
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+[MEMORY] Replacing page 4 from frame 2
+[MEMORY] Loaded page 5 into frame 2
+[MEMORY UTILIZATION] Used Frames: 4/4 (100.00%)
+
+[PAGE TABLE]
+Page	Frame	Valid
+0	-1	0
+1	-1	0
+2	1	1
+3	-1	0
+4	-1	0
+5	2	1
+6	3	1
+7	0	1
+
+Total Page Faults: 7
+
+--- FILE SYSTEM TESTS ---
+[FILE SYSTEM] Created file: file1.txt
+[FILE SYSTEM] Created file: readonly.txt
+[FILE SYSTEM] Wrote to file: file1.txt
+[ERROR] Cannot write to read-only file: readonly.txt
+[FILE SYSTEM] Reading file1.txt: This is a writable file.
+[FILE SYSTEM] Reading readonly.txt: 
+
+[FILE LIST in /root]
+ - file1.txt (Read-Write)
+ - readonly.txt (Read-Only)
+[FILE SYSTEM] Deleted file: readonly.txt
+
+[FILE LIST in /root]
+ - file1.txt (Read-Write)
+
+--- DISK SCHEDULER TESTS ---
+[DISK FCFS] Head movement: 98 -> 183 -> 37 -> 122 -> 14 -> 124 -> 65 -> 67 -> END
+Total Head Movement: 640
+
+[DISK SSTF] Head movement: 65 -> 67 -> 37 -> 14 -> 98 -> 122 -> 124 -> 183 -> END
+Total Head Movement: 236
+
+[DISK SCAN] Head movement: 53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> 37 -> 14 -> END
+Total Head Movement: 169
+
+
+--- SECURITY TESTS ---
+[SECURITY] Admin performed 'delete' on file1.txt
+[SECURITY] Student performed 'write' on file1.txt
+[SECURITY VIOLATION] Student attempted 'delete' on file1.txt — Access Denied!
+[SECURITY] Guest performed 'read' on file1.txt
+[SECURITY VIOLATION] Guest attempted 'write' on file1.txt — Access Denied!
