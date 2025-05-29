@@ -1,5 +1,6 @@
+import Lanyard from "./Lanyard";
 
-export default function BackgroundVideo ()  {
+export default function BackgroundVideo() {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background video */}
@@ -14,10 +15,9 @@ export default function BackgroundVideo ()  {
         Your browser does not support the video tag.
       </video>
 
-      {/* Foreground content */}
-      
+      {/* Foreground content with right aligned card */}
+
+      <Lanyard position={[5, 1, 30]} gravity={[0, -40, 0]} />
     </div>
   );
-};
-
-
+}
