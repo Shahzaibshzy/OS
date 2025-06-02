@@ -1,79 +1,109 @@
+// file_system.c
+#include "file_system.h"
+#include "security_module.h"
 #include <stdio.h>
 #include <string.h>
-#include "file_system.h"
+#include <stdlib.h>
 
-static Directory root;
+void logFileAction(const char *action, const char *filename) {
+    FILE *log = fopen("logs/filesystem.log", "a");
+    fprintf(log, "[%s] User: %s, File: %s\n", action, currentUser.username, filename);
+    fclose(log);
+}
 
-void init_file_system() {
-    strcpy(root.name, "root");
-    root.file_count = 0;
-    for (int i = 0; i < MAX_FILES; i++) {
-        root.files[i].is_used = 0;
+void createFile() {
+    if (!authorizeFileAction("write")) return;
+
+    char filename[100];
+    printf("Enter file name to create: ");
+    scanf("%s", filename);
+
+    FILE *f = fopen(filename, "w");
+    if (f != NULL) {
+        fprintf(f, "Owner: %s\n", currentUser.username);
+        fclose(f);
+        printf("File '%s' created.\n", filename);
+        logFileAction("CREATE", filename);
+    } else {
+        printf("Error creating file.\n");
     }
 }
 
-int create_file(const char* name, Permission perm) {
-    for (int i = 0; i < MAX_FILES; i++) {
-        if (!root.files[i].is_used) {
-            strcpy(root.files[i].name, name);
-            root.files[i].permission = perm;
-            root.files[i].content[0] = '\0';
-            root.files[i].is_used = 1;
-            root.file_count++;
-            printf("[FILE SYSTEM] Created file: %s\n", name);
-            return 1;
-        }
+void readFile() {
+    if (!authorizeFileAction("read")) return;
+
+    char filename[100];
+    printf("Enter file name to read: ");
+    scanf("%s", filename);
+
+    FILE *f = fopen(filename, "r");
+    if (f != NULL) {
+        char ch;
+        while ((ch = fgetc(f)) != EOF)
+            putchar(ch);
+        fclose(f);
+        logFileAction("READ", filename);
+    } else {
+        printf("File not found.\n");
     }
-    printf("[ERROR] Max file limit reached!\n");
-    return 0;
 }
 
-int write_file(const char* name, const char* content) {
-    for (int i = 0; i < MAX_FILES; i++) {
-        if (root.files[i].is_used && strcmp(root.files[i].name, name) == 0) {
-            if (root.files[i].permission == READ_ONLY) {
-                printf("[ERROR] Cannot write to read-only file: %s\n", name);
-                return 0;
-            }
-            strcpy(root.files[i].content, content);
-            printf("[FILE SYSTEM] Wrote to file: %s\n", name);
-            return 1;
-        }
+void writeFile() {
+    if (!authorizeFileAction("write")) return;
+
+    char filename[100], content[1024];
+    printf("Enter file name to write/append: ");
+    scanf("%s", filename);
+    getchar();  // clear newline
+    printf("Enter content to append:\n");
+    fgets(content, sizeof(content), stdin);
+
+    FILE *f = fopen(filename, "a");
+    if (f != NULL) {
+        fprintf(f, "%s\n", content);
+        fclose(f);
+        printf("Content written to '%s'.\n", filename);
+        logFileAction("WRITE", filename);
+    } else {
+        printf("File not found or cannot write.\n");
     }
-    printf("[ERROR] File not found: %s\n", name);
-    return 0;
 }
 
-int read_file(const char* name) {
-    for (int i = 0; i < MAX_FILES; i++) {
-        if (root.files[i].is_used && strcmp(root.files[i].name, name) == 0) {
-            printf("[FILE SYSTEM] Reading %s: %s\n", name, root.files[i].content);
-            return 1;
-        }
+void deleteFile() {
+    if (!authorizeFileAction("delete")) return;
+
+    char filename[100];
+    printf("Enter file name to delete: ");
+    scanf("%s", filename);
+
+    if (remove(filename) == 0) {
+        printf("File '%s' deleted.\n", filename);
+        logFileAction("DELETE", filename);
+    } else {
+        printf("Could not delete file '%s'.\n", filename);
     }
-    printf("[ERROR] File not found: %s\n", name);
-    return 0;
 }
 
-int delete_file(const char* name) {
-    for (int i = 0; i < MAX_FILES; i++) {
-        if (root.files[i].is_used && strcmp(root.files[i].name, name) == 0) {
-            root.files[i].is_used = 0;
-            root.file_count--;
-            printf("[FILE SYSTEM] Deleted file: %s\n", name);
-            return 1;
-        }
-    }
-    printf("[ERROR] File not found: %s\n", name);
-    return 0;
-}
+void runFileSystem() {
+    int choice;
+    while (1) {
+        printf("\n=== File System ===\n");
+        printf("1. Create File\n");
+        printf("2. Read File\n");
+        printf("3. Write/Append to File\n");
+        printf("4. Delete File\n");
+        printf("5. Back to Main Menu\n");
+        printf("Choose: ");
+        scanf("%d", &choice);
+        getchar();  // flush newline
 
-void list_files() {
-    printf("\n[FILE LIST in /%s]\n", root.name);
-    for (int i = 0; i < MAX_FILES; i++) {
-        if (root.files[i].is_used) {
-            printf(" - %s (%s)\n", root.files[i].name,
-                   root.files[i].permission == READ_ONLY ? "Read-Only" : "Read-Write");
+        switch (choice) {
+            case 1: createFile(); break;
+            case 2: readFile(); break;
+            case 3: writeFile(); break;
+            case 4: deleteFile(); break;
+            case 5: return;
+            default: printf("Invalid option.\n");
         }
     }
 }

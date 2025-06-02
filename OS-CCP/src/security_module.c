@@ -1,34 +1,52 @@
+// security_module.c
+#include "security_module.h"
 #include <stdio.h>
 #include <string.h>
-#include "../include/security_module.h"
 
-static UserRole current_user;
+User currentUser;
 
-void set_current_user(UserRole role) {
-    current_user = role;
+void initializeSecurityModule() {
+    printf("Enter username: ");
+    scanf("%s", currentUser.username);
+    getchar();
+    char roleInput[20];
+    printf("Enter role (admin/student/guest): ");
+    scanf("%s", roleInput);
+    getchar();
+
+    if (strcmp(roleInput, "admin") == 0)
+        currentUser.role = ADMIN;
+    else if (strcmp(roleInput, "student") == 0)
+        currentUser.role = STUDENT;
+    else
+        currentUser.role = GUEST;
+
+    printf("User '%s' logged in as %s.\n", currentUser.username, roleInput);
 }
 
-int has_permission(const char *operation) {
-    if (current_user == ROLE_ADMIN) return 1;
-    if (current_user == ROLE_STUDENT) {
-        if (strcmp(operation, "delete") == 0) return 0;
+int authorizeFileAction(const char* action) {
+    if (currentUser.role == ADMIN) return 1;
+    if ((strcmp(action, "read") == 0) && (currentUser.role == STUDENT || currentUser.role == GUEST))
         return 1;
-    }
-    if (current_user == ROLE_GUEST) {
-        return strcmp(operation, "read") == 0;
-    }
+
+    // Log violation
+    FILE *log = fopen("logs/security.log", "a");
+    fprintf(log, "SECURITY VIOLATION: User %s tried to '%s' without permission.\n", currentUser.username, action);
+    fclose(log);
+    
+    printf("Access denied for action '%s'.\n", action);
     return 0;
 }
 
-void log_access_attempt(const char *filename, const char *operation, int allowed) {
-    if (allowed)
-        printf("[SECURITY] %s performed '%s' on %s\n", 
-               (current_user == ROLE_ADMIN ? "Admin" :
-                current_user == ROLE_STUDENT ? "Student" : "Guest"),
-               operation, filename);
-    else
-        printf("[SECURITY VIOLATION] %s attempted '%s' on %s — Access Denied!\n",
-               (current_user == ROLE_ADMIN ? "Admin" :
-                current_user == ROLE_STUDENT ? "Student" : "Guest"),
-               operation, filename);
+void runSecurityModuleManually() {
+    char action[20];
+    printf("Test security module\nEnter action to authorize (read/write/delete/update): ");
+    scanf("%s", action);
+    if (authorizeFileAction(action))
+        printf("Action '%s' authorized.\n", action);
+}
+
+void manualReLogin() {
+    printf("\n-- Manual Re-login --\n");
+    initializeSecurityModule();
 }

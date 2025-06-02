@@ -1,69 +1,73 @@
+// main.c
 #include <stdio.h>
-#include "include/memory_manager.h"
-#include "include/file_system.h"
-#include "include/disk_scheduler.h"
-#include "include/security_module.h"
+#include <stdlib.h>
+#include "memory_manager.h"
+#include "file_system.h"
+#include "disk_scheduler.h"
+#include "security_module.h"
 
-
+// Displays the main menu
+void displayMenu() {
+    printf("\n===== OS Resource Manager =====\n");
+    fflush(stdout);
+    
+    printf("1. Memory Manager\n");
+    fflush(stdout);
+    printf("2. File System\n");
+    fflush(stdout);
+    
+    printf("3. Disk Scheduler\n");
+    fflush(stdout);
+    printf("4. Security & Access Control\n");
+    fflush(stdout);
+    printf("5. Manual Re-login\n");
+    fflush(stdout);
+    printf("6. Exit\n");
+    fflush(stdout);
+    printf("Select Module to Run: ");
+}
 
 int main() {
-    freopen("log.txt", "w", stdout);
-    printf("OS Simulator Running...\n");
+    int choice;
 
-    // Memory module
-    init_page_table();
-    int test_pages[] = {1, 3, 4, 1, 6, 3, 7, 2, 4, 5};
-    for (int i = 0; i < 10; i++) {
-        access_page(test_pages[i]);
-        log_memory_utilization();
-    };
-    print_page_table();
-    printf("\nTotal Page Faults: %d\n", get_page_faults());
+    // Initialize security users/roles at start
+    initializeSecurityModule();  
 
-    // File system module
-    printf("\n--- FILE SYSTEM TESTS ---\n");
-    init_file_system();
+    while (1) {
+        displayMenu();
+        
+        // Validate integer input
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input. Please enter a number.\n");
+            fflush(stdout);
+            while (getchar() != '\n');  // Clear input buffer
+            continue;
+        }
+        getchar();  // Clear newline after number
 
-    create_file("file1.txt", READ_WRITE);
-    create_file("readonly.txt", READ_ONLY);
-
-    write_file("file1.txt", "This is a writable file.");
-    write_file("readonly.txt", "Attempting write to read-only file.");
-
-    read_file("file1.txt");
-    read_file("readonly.txt");
-
-    list_files();
-
-    delete_file("readonly.txt");
-    list_files();
-
-
-    printf("\n--- DISK SCHEDULER TESTS ---\n");
-    int requests[] = {98, 183, 37, 122, 14, 124, 65, 67};
-    int n = sizeof(requests)/sizeof(requests[0]);
-    int head_start = 53;
-
-    run_fcfs(requests, n, head_start);
-    run_sstf(requests, n, head_start);
-    run_scan(requests, n, head_start, 1); // 1 = right
-
-
-
-    printf("\n--- SECURITY TESTS ---\n");
-
-    set_current_user(ROLE_ADMIN);
-    log_access_attempt("file1.txt", "delete", has_permission("delete"));
-
-    set_current_user(ROLE_STUDENT);
-    log_access_attempt("file1.txt", "write", has_permission("write"));
-    log_access_attempt("file1.txt", "delete", has_permission("delete"));
-
-    set_current_user(ROLE_GUEST);
-    log_access_attempt("file1.txt", "read", has_permission("read"));
-    log_access_attempt("file1.txt", "write", has_permission("write"));
-
-
+        switch (choice) {
+            case 1:
+                runMemoryManager();
+                break;
+            case 2:
+                runFileSystem();  // Enforces role-based security
+                break;
+            case 3:
+                runDiskScheduler();  // Uses SSTF
+                break;
+            case 4:
+                runSecurityModuleManually();  // Manual login/re-login
+                break;
+            case 5:
+                manualReLogin();  // Allows re-login to change user roles
+                break;
+            case 6:
+                printf("Exiting OS Resource Manager.\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    }
 
     return 0;
 }

@@ -3,48 +3,35 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-const { extractSection } = require("./utils");
+const logsDir = path.join(__dirname, "..", "OS-CCP", "logs");
 
-const logPath = path.join(__dirname, "..", "OS-CCP", "log.txt");
-
-// Return the entire log
-router.get("/", (req, res) => {
-  fs.readFile(logPath, "utf8", (err, data) => {
+// Helper function to send file content as plain text
+function sendLogFile(res, filename) {
+  const filePath = path.join(logsDir, filename);
+  fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
-      console.error("Error reading log file:", err);
-      return res.status(500).send("Error reading log file.");
+      console.error(`Error reading ${filename}:`, err);
+      return res.status(500).send(`Error reading file ${filename}`);
     }
-
     res.type("text/plain").send(data.trim());
-  });
-});
-
-function readLogAndSendSection(res, startMarker, endMarker = null) {
-  fs.readFile(logPath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading log file:", err);
-      return res.status(500).send("Error reading log file.");
-    }
-
-    const section = extractSection(data, startMarker, endMarker);
-    res.type("text/plain").send(section.trim());
   });
 }
 
+// Replace old sectional routes with direct file serving routes
 router.get("/mem", (req, res) => {
-  readLogAndSendSection(res, "[MEMORY]", "--- FILE SYSTEM TESTS ---");
+  sendLogFile(res, "memory.log");
 });
 
 router.get("/fs", (req, res) => {
-  readLogAndSendSection(res, "--- FILE SYSTEM TESTS ---", "--- DISK SCHEDULER TESTS ---");
+  sendLogFile(res, "filesystem.log");
 });
 
 router.get("/ds", (req, res) => {
-  readLogAndSendSection(res, "--- DISK SCHEDULER TESTS ---", "--- SECURITY TESTS ---");
+  sendLogFile(res, "disk_io.log");
 });
 
 router.get("/scr", (req, res) => {
-  readLogAndSendSection(res, "--- SECURITY TESTS ---");
+  sendLogFile(res, "security.log");
 });
 
 module.exports = router;

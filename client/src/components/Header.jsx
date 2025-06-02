@@ -105,11 +105,18 @@ const Header = () => {
               direction="top"
               className="text-xs md:text-xl font-bold"
             />
+            <BlurText
+              text="Ram Kumar (67452)"
+              delay={130}
+              animateBy="words"
+              direction="top"
+              className="text-xs md:text-xl font-bold"
+            />
           </div>
 
           {/* Right - Buttons */}
           <div className="flex space-x-2">
-            {["logs", "run"].map(renderButton)}
+            {["run"].map(renderButton)}
           </div>
         </div>
 
